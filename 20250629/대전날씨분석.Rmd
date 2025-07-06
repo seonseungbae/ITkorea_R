@@ -1,0 +1,49 @@
+---
+title: "25년 대전날씨 데이터 분석"
+author: "선승배"
+date: "2025-06-29"
+output: word_document
+---
+```{r setup, include=FALSE}
+#  include=FALSE : 해당 코드를 문서에 포함 X
+knitr::opts_chunk$set(echo = TRUE)
+weather = read.csv('OBS_ASOS_TIM_20250629105623.csv', na.strings = c(""), fileEncoding = 'CP949', encoding = 'UTF-8', check.names = FALSE)
+
+colnames(weather) =  c("station_id", "station_name", "datetime", "temp", "precip", "windspeed", "winddir", "humidity","CA")
+
+weather$precip = ifelse(is.na(weather$precip), 0 , weather$precip)
+weather$datetime = as.POSIXct(weather$datetime, format='%Y-%m-%d %H:%M')
+```
+
+## 1. 데이터 소개
+
+본 문서는 2025년 1월 1일 ~ 2025년 6월 28일 대전 지역의 시간별 기온, 풍속, 습도 데이터를 분석합니다.
+
+- **지점** : 대전
+- **변수** : 일시, 기온, 강수량, 풍속, 습도, 전운량
+
+## 2. 데이터 요약
+
+기온,풍속,습도 데이터를 요약합니다.
+```{r, echo=FALSE}
+# 코드는 x 결과만 문서에 출력
+summary(weather$temp) # 기온 데이터 요약
+summary(weather$windspeed) # 풍속 데이터 요약
+summary(weather$humidity) # 습도 데이터 요약
+```
+
+기온,풍속,습도 데이터의 상관계수를 확인합니다.
+```{r, echo=FALSE}
+
+```
+
+기온, 풍속, 습도 상관계수 행렬 조회
+weather_var = weather[, c('temp', 'windspeed', 'humidity')]
+cor_mat = cor(weather_var, use='complete.obs')
+print(cor_mat)
+```
+
+기온, 풍속, 습도 데이터의 상관계수 시각화합니다.
+```{r, echo=FALSE}
+library(corrgram)
+corrgram(cor_mat, main='기온,풍속,습도 상관계수 시각화', lower)
