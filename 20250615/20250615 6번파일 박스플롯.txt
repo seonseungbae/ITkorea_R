@@ -1,0 +1,83 @@
+# 박스플롯 : 데이터의 분포를 시각적 표현, 최솟값, 최댓값, 중앙값 등의 
+# 요약 통계치를 보여주는데, 그룹핑 할때 사용한다.
+
+# 제조사별 칼로리 분포를 박스플롯으로 표현해보기
+
+library(ggplot2)   # ggplot 사용하기 준비
+ 
+scereal = read.csv('UScereal.csv')    #  data 파일 불러오기
+
+boxplot = ggplot(scereal, aes(x = mfr, y = calories, fill = mfr)) +
+  geom_boxplot( )+
+  labs(title = '제조사별 칼로리 분포',
+       x ='제조사',
+       y ='칼로리')
+  theme_minimal( )  # 뒤에 회색배경 제거하는 것임.
+  theme(panel.grid = element_blank())  # 뒤에 바둑판 (그리드) 제거
+print(boxplot) 
+  
+# 제조사(mfr)  별 나트륨(sodium) 분포 박스플롯
+
+boxplot = ggplot(scereal, aes(x = mfr, y = sodium, fill = mfr)) +
+  geom_boxplot()+
+  labs(title = '제조사별 나트륨 분포',
+       x ='제조사',
+       y ='나트륨')
+theme_minimal()  # 뒤에 회색배경 제거하는 것임.
+# theme(panel.grid = element_blank())  # 뒤에 바둑판 (그리드) 제거
+
+print(boxplot) 
+
+# ggsave('boxplot.pdf', width = 10, height = 6, dpi = 300)  
+
+==================박스플롯 실습한 것 위에 것=======
+
+====이 아래부터 종합실습 : 한바퀴 돌려보는 것임. ====
+
+scereal = read.csv('UScereal.csv')
+# View(scereal)
+
+# 칼로리 vs 단백질
+
+# 기본그래프 산점도
+
+plot(scereal$calories, scereal$protein, main = '칼로리 vs 단백질')
+
+# (종속변수) ~ (독립변수) 를 의미한다. 아래 코드
+# 독립변수가(칼로리) 변할 때 종속변수가 어떻게 변화하는지 나타냄.
+# 칼로리가 높을 수록 단백질 함량도 높아지는가? *** 매우중요함.
+# lm 선형회귀 : 두변수 사이의 관계를 직선으로 설명하는 분석방법
+
+model = lm(scereal$protein ~ scereal$calories)
+
+print(summary(model))  # 모델 요약하기
+# p-value: 5.071e-11  ---> 0.00000000005071  (0이 11개다.)
+# *****p-value(유의확률) : 1700년도 영국에서 개념 도입 --> 1900년대 공식도입
+# 과학, 의학, 사회과학 등 다양한 분야에서 유효하게 사용함.
+# 유의확률은 통계분석에서 "관계가 우연히 나타날 확률"을 의미
+#즉, 칼로리와 단백질 사이에 실제로 아무런 관계가 없는데도, 우연히 지금처럼
+#강한관계를 관찰될 확률을 나타냄.
+abline(model, col = 'red', )
+
+
+Call:
+lm(formula = scereal$protein ~ scereal$calories)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-2.6670 -0.9379 -0.4025  0.7933  6.5628 
+
+Coefficients:
+                  Estimate Std. Error t value Pr(>|t|)    
+(Intercept)      -0.782648   0.611022  -1.281    0.205    
+scereal$calories  0.029894   0.003778   7.913 5.07e-11 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 1.886 on 63 degrees of freedom
+Multiple R-squared:  0.4985,	Adjusted R-squared:  0.4905 
+F-statistic: 62.61 on 1 and 63 DF,  p-value: 5.071e-11
+-----------------------------------------------------------------------
+
+
+

@@ -1,0 +1,95 @@
+# install.packages('ggplot2') 설치는 한번만
+
+library(ggplot2) #설치한 ggplot2 불러오기
+
+scereal = read.csv('UScereal.csv')
+==============================
+
+#기본 산점도 표현 칼로리 vs 단백질
+
+# aes : aesthetics (미적 속성)  ** 이것은 x축과 y축이 무엇인지 나타낸다.
+# labs : labels 
+# lm : linear model (선형 모델)
+# se : 회귀선에서 신뢰구간 표시
+plot = ggplot(scereal, aes(x = calories, y = protein)) + #산점도 데이터
+  geom_point() + #산점도에 점
+  labs(title = '칼로리 vs 단백질',
+       x = '칼로리', y='단백질') +
+  geom_smooth(method = 'lm', se = TRUE) + #회귀선 추가
+  theme_minimal() #그래프 배경 깔끔하게 처리
+
+===========================================
+
+# 신뢰구간 조금벗어난 것도 포함된다. 선에 걸쳐있는것, 회색선 주변
+# print(plot)  # ctrl + shift + s 누르고 결과 확인하면 주석처리 해라.
+
+scereal$label = rownames(scereal)  # 행의 번호를 label이라는 것에 추가
+# View(scereal) # 시퀀스 확인  123456 등등
+
+========================================
+
+# 산점도 그래프에 텍스트 추가
+
+plot = ggplot(scereal, aes(x = calories, y = protein)) + #산점도 데이터
+  geom_point() + #산점도에 점
+  labs(title = '칼로리 vs 단백질',
+       x = '칼로리', y='단백질') +
+  geom_smooth(method = 'lm', se = TRUE) +      #회귀선 추가
+  geom_text(aes(label=label), hjust=0, vjust=1, size=3, check_overlap = TRUE) + 
+  theme_minimal() #그래프 배경 깔끔하게 처리
+
+print(plot)
+
+===============================================
+
+#칼로리가 낮은 제품은 Good, 높은 제품은 Bad를 구분하는 새로운 열을 추가
+# 칼로리가 평균보다 낮으면 Good, 아니면 Bad
+# 새로운 열 `grade` 추가
+
+칼로리_평균 = mean(scereal$calories, na.rm = TRUE)
+cat('칼로리 평균 : ', 칼로리_평균, '\n')   # 149.4083
+
+scereal$grade = ifelse(scereal$calories <= 칼로리_평균, 'Good','Bad')
+print(head(scereal))
+
+=============================================
+
+# 상관계수
+
+칼로리_단백질_상관계수 = round(cor(scereal$calories, scereal$protein, use='complete.obs'),2)
+cat('칼로리와 단백질 상관계수 : ', 칼로리_단백질_상관계수, '\n')  #. 0.71 \=역슬래시
+# (round, 2)  넣으면 소수점 2자리까지
+
+# Good 이면 동그라미, Bad면 세모표시 
+
+plot = ggplot(scereal, aes(x = calories, y = protein, shape=grade, color=grade)) + #산점도 데이터
+  geom_point() +  #산점도에 점
+  labs(title = '칼로리 vs 단백질', x = '칼로리', y='단백질') +
+  scale_shape_manual(values = c('Good'=16, 'Bad'=17))+   # 모양 다르게 지정
+  # 네모 = 15, 별 = 8  동그라미 16 세모 17
+  scale_color_manual(values = c('Good'='blue','Bad'='red'))+  # 모양 색깔
+  geom_smooth(method = 'lm', se = TRUE) +      #회귀선 추가
+  geom_text(aes(label=label), hjust=0, vjust=1, size=3, check_overlap = TRUE) + 
+  annotate('text', x = 300, y = 10, # 좌표               
+          label = paste0('상관계수: ', 칼로리_단백질_상관계수),  # 데이터
+          color = 'black',   # 폰트 색상
+          size = 4           # 폰트 사이즈
+          ) +
+  # 상관계수 수치 그래프에 표현  주석을 달다라는 뜻이다.
+  # 텍스트 형태의 주석을 단다.
+  theme_minimal() #그래프 배경 깔끔하게 처리
+
+print(plot)
+==================================
+# ggplot에서는 ggsave 명령어로 쉽게 저장할 수 있다.
+
+# dpi = 해상도까지 조절가능 
+
+# ggsave('myplot.png', width = 10, height = 6, dpi = 300)  # 파일저장 만들기
+
+# pdf 파일로 하려면 아래와 같이 png 를 pdf로만 바꾸면 된다.
+ggsave('myplot.pdf', width = 10, height = 6, dpi = 300)  
+
+
+
+

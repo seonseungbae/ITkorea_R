@@ -1,0 +1,238 @@
+
+6월 15일 오전 1번파일 : 예제 파일 UScereal.csv
+
+scereal = read.csv('UScereal.csv')
+# View(scereal)
+
+# 상관관계 시각화
+# cor (correlation 의 약자 상관계수라는 뜻)
+# 설탕과 칼로리 상관관계
+설탕과칼로리_상관관계 = cor(scereal$sugars, scereal$calories, use= 'complete.obs')
+cat('설탕과 칼로리_상관관계 : ', round(설탕과칼로리_상관관계,2), '\n')
+# 0. 5 나옴
+# 0.5 보통관계
+# -1 ~ 1 : -1(음의관계), 0 관계없음. 1 양의관계
+# 상관계수 해석 : 0.3 이하 약한관계, 0.3 ~0.7 중간관계, 0.7이상 강한관계
+
+# install.packages('corrgram')   # 코드가 안보일때 최초 한번 설치하고, 주석설치
+
+library(corrgram)  # 위의 설치한 프로그램 불러오기
+
+library(dplyr)
+
+테스트 = scereal %>% select(calories, protein, fat)
+print(head(테스트))    # ctrl+shift+s누르기  # 추출확인
+
+corrgram(테스트,                  # 그래프에 들어갈 데이터
+         main = '칼로리, 단백질, 지방 상관관계 행렬',  # 그래프 제목
+         lower.panel = panel.shade, # 아래쪽 색상으로 상관관계 표현
+         upper.panel = panel.cor,   # 위쪽 색상으로 상관관계 표현
+         diag.panel = panel.minmax) # 대각선은 최솟, 최댓값 표현
+
+# scereal 데이터에서 제조사(mfr)별로 평균 칼로리(calories),
+  #평균 단백질(protein), 평균 식이섬유(fibre)를 구하고, 이 세 변수로 상관관계
+  #행렬을 만들어 corrgram으로 시각화하시오.
+
+library(corrgram)  # 위의 설치한 프로그램 불러오기
+
+library(dplyr)
+
+제조사별_데이터 = scereal %>% group_by(mfr) %>%
+  summarise(
+    cal_avg = mean(calories, na.rm = TRUE),
+    pro_avg = mean(protein, na.rm = TRUE),
+    fi_avg = mean(fibre, na.rm = TRUE)
+  )
+corrgram(제조사별_데이터,
+         main = '칼로리, 단백질, 지방 상관관계 행렬',  # 그래프 제목
+         lower.panel = panel.shade, # 아래쪽 색상으로 상관관계 표현
+         upper.panel = panel.cor,   # 위쪽 색상으로 상관관계 표현
+         diag.panel = panel.minmax) # 대각선은 최솟, 최댓값 표현
+
+# 데이터에서 나트륨(sodium), 식이섬유(fibre), 복합탄수화물(carbo), 칼륨(potassium) 
+# 컬럼을 선택하고, 결측치가 아닌 데이터만 corrgram으로 상관관계 시각화하시오.
+
+결측치가_아닌_데이터 = scereal %>% 
+  filter(!is.na(sodium)& !is.na(fibre) & !is.na(carbo) & !is.na(potassium)) %>% 
+  select(sodium, fibre, carbo, potassium)
+
+corrgram(결측치가_아닌_데이터,
+        main = '나트륨, 식이섬유, 복합탄수화물, 칼륨상관관계',
+         lower.panel = panel.shade, # 아래쪽 색상으로 상관관계 표현
+         upper.panel = panel.cor,   # 위쪽 색상으로 상관관계 표현
+         diag.panel = panel.minmax) # 대각선은 최솟, 최댓값 표현
+
+상관관계 = cor(scereal$fibre, scereal$potassium, use='complete.obs')
+print(상관관계)   # 0.9638662
+
+
+======================================
+6월 15일 오전 2번 파일 : 예제 UScereal.csv
+
+# install.packages('ggplot2') 설치는 한번만
+
+library(ggplot2) #설치한 ggplot2 불러오기
+
+scereal = read.csv('UScereal.csv')
+
+#기본 산점도 표현 칼로리 vs 단백질
+# aes : aesthetics (미적 속성)
+# labs : labels 
+# lm : linear model (선형 모델)
+# se : 회귀선에서 신뢰구간 표시
+
+plot = ggplot(scereal, aes(x = calories, y = protein)) + #산점도 데이터
+  geom_point( ) + #산점도에 점
+  labs(title = '칼로리 vs 단백질',
+       x = '칼로리', y='단백질') +
+  geom_smooth(method = 'lm', se = TRUE) + #회귀선 추가
+  theme_minimal( ) #그래프 배경 깔끔하게 처리
+
+print(plot)
+
+
+
+=========6월 15일 오후 실습파일 혼자서한것============
+# 제조사별(mfr) 색상 구분
+
+plot = ggplot(scereal, aes(x = calories, y = protein, color = mfr)) +
+  geom_point( ) +
+  geom_smooth(method='lm', se=TRUE) +
+  labs(title = '칼로리 VS 단백질', 
+       x = '칼로리',
+       y = '단백질') +
+  theme_minimal( )  
+
+print(plot)
+
+
+=========6월 15일 오후 실습파일 혼자서한것============
+
+# 텍스트 추가
+# check_overlap : 라벨이 서로 겹칠 경우 라벨을 표시하지 않도록하여, 
+# 그래프의 가독성을 높임.
+
+data$label = row.names(data)  # 행의 번호를 label 에 대입한 것임.
+
+plot = ggplot(data, aes(x=calories, y=protein, color = mfr)) +
+  geom_point() +
+  geom_smooth(method = 'lm', se = TRUE) +
+  geom_text(aes(label=label), hjust = 0, vjust = 1, size = 3, check_overlap = TRUE)+ 
+  labs(title = '칼로리 vs 단백질',
+       x='칼로리',
+       y='단백질') +
+  theme_minimal( )  
+print(plot)
+
+=========6월 15일 오후 실습파일 혼자서한것============
+
+# 데이터에서 칼로리가 낮은 제품(Good)과 높은 제품(Bad)를 구분하는
+# 새로운 열을 추가하고 산점도로 표현하기
+
+# 칼로리가 149 이하면 "Good", 그렇지 않으면 "Bad"로 지정
+
+print(mean(data$calories))
+data$grade = ifelse(data$calories <= 149, "Good", "Bad")
+
+
+====(이어서)Good은 동그라미, Bad는 세모로 색상도 다르게 ===  
+
+plot = ggplot(data, aes(x=calories, y=protein, shape = grade, color = grade))+
+ geom_point() + 
+ scale_shape_manual(values = c("Good" = 16, "Bad" = 17))   
+ scale_color_manual(values = c("Good" = "blue", "Bad" = "red))  +
+ labs(title = "calories vs protein",
+ x= "calories",
+ y= "protein") +
+theme_minimal( )
+
+print(plot)
+
+==========================================
+========이미지로 저장하기===============
+
+ggplot2에서는 ggsave( ) 함수를 사용하여 그래프를 pdf, png, jpg
+등으로 저장할 수 있음.
+
+# DF, PNG, JPEG 등 다양한 형식 저장 가능
+# 그리고, 그래프의 크기, 해상도 등을 조정할 수 있는 옵셥도 제공
+
+ggsave("myplot.png", width = 10, height = 6, dpi = 300)
+
+=========여기까지 6월 15일 오후 실습파일 혼자서한것============\
+
+================6월 15일 오후실습(강사님과 함께)==============
+# install.packages('ggplot2') 설치는 한번만
+
+library(ggplot2) #설치한 ggplot2 불러오기
+
+scereal = read.csv('UScereal.csv')
+
+#기본 산점도 표현 칼로리 vs 단백질
+# aes : aesthetics (미적 속성)  ** 이것은 x축과 y축이 무엇인지 나타낸다.
+# labs : labels 
+# lm : linear model (선형 모델)
+# se : 회귀선에서 신뢰구간 표시
+plot = ggplot(scereal, aes(x = calories, y = protein)) + #산점도 데이터
+  geom_point() + #산점도에 점
+  labs(title = '칼로리 vs 단백질',
+       x = '칼로리', y='단백질') +
+  geom_smooth(method = 'lm', se = TRUE) + #회귀선 추가
+  theme_minimal() #그래프 배경 깔끔하게 처리
+# 신뢰구간 조금벗어난 것도 포함된다. 선에 걸쳐있는것, 회색선 주변
+# print(plot)  # ctrl + shift + s 누르고 결과 확인하면 주석처리 해라.
+
+scereal$label = rownames(scereal)  # 행의 번호를 label이라는 것에 추가
+# View(scereal) # 시퀀스 확인  123456 등등
+
+# 산점도 그래프에 텍스트 추가
+plot = ggplot(scereal, aes(x = calories, y = protein)) + #산점도 데이터
+  geom_point() + #산점도에 점
+  labs(title = '칼로리 vs 단백질',
+       x = '칼로리', y='단백질') +
+  geom_smooth(method = 'lm', se = TRUE) +      #회귀선 추가
+  geom_text(aes(label=label), hjust=0, vjust=1, size=3, check_overlap = TRUE) + 
+  theme_minimal() #그래프 배경 깔끔하게 처리
+
+print(plot)
+
+#칼로리가 낮은 제품은 Good, 높은 제품은 Bad를 구분하는 새로운 열을 추가
+# 칼로리가 평균보다 낮으면 Good, 아니면 Bad
+# 새로운 열 `grade` 추가
+
+
+칼로리_평균 = mean(scereal$calories, na.rm = TRUE)
+cat('칼로리 평균 : ', 칼로리_평균, '\n')   # 149.4083
+
+scereal$grade = ifelse(scereal$calories <= 칼로리_평균, 'Good','Bad')
+print(head(scereal))     **파일 확인하기...head
+
+# Good 이면 동그라미, Bad면 세모표시 
+
+plot = ggplot(scereal, aes(x = calories, y = protein, shape=grade, color=grade)) + #산점도 데이터
+  geom_point() + #산점도에 점
+  labs(title = '칼로리 vs 단백질', x = '칼로리', y='단백질') +
+  scale_shape_manual(values = c('Good'=16, 'Bad'=17))+   # 모양 다르게 지정
+  scale_color_manual(values = c('Good'='blue','Bad'='red'))+  # 모양 색깔
+  geom_smooth(method = 'lm', se = TRUE) +      #회귀선 추가
+  geom_text(aes(label=label), hjust=0, vjust=1, size=3, check_overlap = TRUE) + 
+  theme_minimal() #그래프 배경 깔끔하게 처리
+
+# print(plot)  프린트하고 주석처리
+===========================================
+# ggplot에서는 ggsave 명령어로 쉽게 저장할 수 잇다.
+
+ggsave('myplot.png', width = 10, height = 6, dpi = 300)  
+
+ggsave('myplot.pdf', width = 10, height = 6, dpi = 300)  
+
+
+
+
+
+
+
+
+
+
+
