@@ -1,0 +1,265 @@
+data = data.frame(
+  성별 = c('M','M','M','M','M','F','F','F','F','F'),
+  키 = c(175, 168, 180, 170, 172, 160, 158, 165, 162, 155),
+  몸무게 = c(70, 65, 80, 72, 68, NA, 50, 60, 52, 48)
+)
+
+# 데이터프레임
+# View(data)
+
+결과 = data  # data 에 들어있는 정보를 결과 라는 변수에 대입
+# View(결과)
+
+결과$x = c(70, 65, 80, 72, 68, NA, 50, 60, 52, 48)
+# View(결과)  # 새로운 컬럼 추가 
+# View(data)
+
+# 전처리 도구(아래 디플리알)
+# install.packages("dplyr")  # 설치는 한번만하고 주석처리
+library(dplyr)   # 설치된 도구를 불러옵니다.
+# mutate 새로운열 추가  = 결과$x(필터 필요없을때사용)와 위의 동일
+# 필터링된 결과를 새로운 열로 추가할 때는 디플리아을 사용하자.
+# data = data %>% mutate(x = 10)   # 위에 선언된 DATA에 X로 된곳에 10이 전부추가
+# View(data)
+
+결과 = data %>% mutate(x = 10)
+# View(결과)
+# View(data)
+
+# 상관계수   # 상관계수  # 상관계수
+# 상관계수는 두 변수가 서로 어떻게 관련되어 있는지를 측정하며, 수치로 표현
+data = data.frame(
+  성별 = c('M','M','M','M','M','F','F','F','F','F'),
+  키 = c(175, 168, 180, 170, 172, 160, 158, 165, 162, 155),
+  몸무게 = c(70, 65, 80, 72, 68, 55, 50, 60, 52, 48)
+)
+
+# cor은 correlation의 약자로 상관계수 뜻
+상관계수 = cor(data$키, data$몸무게)
+print(상관계수)  # 결과가 NA가 나옴.....?????? 왜???
+# NA : 결측값, 데이터 수집에 누락된 값(혹은 실패한 값)
+#결측값 처리
+# obs = observation # na 를 제외한 값들 계산
+상관계수= cor(data$키, data$몸무게, use = 'complete.obs')
+print(상관계수)   # 0.9685347 이나옴.
+
+# 상관계수는 보통 -1에서 1까지의 값을 가지고 있다.
+# 상관계수의 값이 1에 가까울수록 두변수가 완벽하게 양의 선형관계를 가짐
+# 즉, 한변수가 증가할 때 다른변수도 증가함.
+# 두변수가 -1에 가까울수록 두변수가 완벽하게 음의 선형관계를 가짐.
+# 즉, 한변수가 증가할 때 다른 변수는 감소함.
+# 만약에 0이 나오면 두변수간 선형관계가 전혀 없음(관계가 없다.)
+
+# 디플리알을 이용해서 성별 키와 몸무게 상관계수를 조회!!!!!!!
+
+성별_상관계수 = data %>% group_by(성별) %>% summarise(
+  cor(키, 몸무게, use = 'complete.obs')
+)
+print(성별_상관계수)   
+
+# 위의 것을 산점도로 시각화
+
+# main 은 그래프이름
+plot(data$키, data$몸무게, main = '산점도와 회귀선', xlab = 'x축',
+     ylab = 'y축', col = 'blue', pch = 19)
+
+# 위의 상태에서 회귀선 추가
+
+# lm = linear model 선형모델 = 머신러닝에서 많이사용
+model = lm(data$몸무게~ data$키)
+
+# add a line 선을 추가하다.  lwd = 선을 두껎게 하는것임.
+abline(model, col = 'red', lwd = 3)
+
+
+
+==============================================================
+
+# 정규분포
+# 정규분포는 확률밀도 그래프의 한 종류로, 키, 점수처럼 연속적인 값의 
+# 분포를 정규분포라고 함. 
+# 정규분포의 반대는 이항분포(동전 앞 / 뒤 :  결과가 2개밖에 없는 것임.)
+# 논문이나 레포트 할 때 많이 사용한다.
+
+students = data.frame(
+  name = c("Alice", "Bob", "Charlie", "David", "Eve", "Jose"),
+  score = c(85, 92, 78, 95, 88, 200)
+)
+
+# 1번 평균하고 표준편차를 조회한다.
+#평균
+mu = mean(students$score)
+# 표준편차
+sigma = sd(students$score)
+
+# 2번째 정규분포 곡선용 x, y 값 생성
+# 최소 최대값(아래)
+# length : 곡선을 부드럾게 그려주는 옵션
+x = seq(min(students$score), max(students$score), length = 50)
+
+# dnorm : destiny 와 normal drstribution(정규분포) 결합
+# 주어진 평균과 표준편차를 갖는 정규분포에서 특정 x에 대한 확률밀도를 계산
+# 즉, 데이터가 특정구간에 있을 확률을 말함.
+y = dnorm(x, mu, sigma)
+
+# 정규분포 시각화
+# type = 'l'은 라인을 말한다. line
+# plot(x, y, type = 'l', lwd = 2, col = 'blue', main = '학생 점수 정규분포'
+#     , xlab = '점수', ylab = '확률')
+
+# 조제 200점 때문에 정규분포 그래프가 이상하게 나옴.
+# 실무에서는 그래프가 이상한 것을 확인이 되면, 이상치 제거를 해야함.
+# 이상치 제거가 중요하고, 이것도 데이터 전처리 과정의 하나이다.
+# 데이터의 분포에서 극단적으로 벗어난 값을 탐지하고, 처리하는 방법
+# 그래서, 조제의 데이터를 제거해야 한다.
+============================================
+# Z-score 라는 알고리즘(이상치제거)을 사용하여 제거함.
+# z스코어가 0이면 데이터 값이 평균과 동일함을 의미함.
+# 만약, Z스코어가 양수이면, 데이터 값이 평균보다 크며, 양수 값이 클수록 
+# 평균에서 멀리 떨어져 있음을 의미함을 이해해야함. 중요함.....!!!!
+
+
+print(students)
+
+# 1번 작업 : 평균과 표준편차를 먼저 구해야 한다.
+
+# mean : 평균
+mu = mean(students$score)
+# sd : 표준편차
+sigma = sd(students$score)
+
+print(mu)   # 106.3333
+print(sigma)  # 46.26302
+
+# students$z_score =(students$score - mu) / sigma
+# abs 절대값
+students$z_score = abs((students$score - mu) / sigma)
+print(students)
+
+# 2 ~ 3(임계값) 조제의 값이 2.0246554가 나왔음. 양수값이 나옴.
+# 따라서, 임계값을 상황에 따라 조절해야 하는 것임.
+
+library(dplyr)
+
+이상치제거_데이터 = students %>% filter(z_score < 2)  
+# 2는 임계값으로 상황에따라 조절
+print(이상치제거_데이터)    # 아래 콘솔창에서 조제가 사라졌음.
+
+
+# 위의 이상치 제거 후 정규분포 그래프 시각화
+mu = mean(이상치제거_데이터$score)
+sigma = sd(이상치제거_데이터$score)
+# x = seq(min(students$score), max(students$score), length = 50)
+
+x = seq(min(이상치제거_데이터$score) - 10, max(이상치제거_데이터$score) + 10, length = 50)
+y = dnorm(x, mu, sigma)
+
+# x = seq(min(이상치제거_데이터s$score)-10, max(이상치제거_데이터$score)+10, length = 50)
+# y = dnorm(x, mu, sigma)
+# -10 / +10을 넣어 그래프를 이쁘게 만든다.
+
+plot(x, y, type = 'l', lwd = 2, col = 'blue', main = '학생 점수 정규분포'
+     , xlab = '점수', ylab = '확률')
+
+# 중앙값, 상위 20%, 하위 20% 추가
+
+med = median(이상치제거_데이터$score)
+print(quantile(이상치제거_데이터$score))    # 사분위수 출력
+
+q20 = quantile(이상치제거_데이터$score, 0.2)  # 하위 20
+q80 = quantile(이상치제거_데이터$score, 0.8)  # 상위 20
+
+# abline
+# V는 수직선이다. lty는 점선이다.
+abline(v=med, col = 'purple', lwd=2, lty=2)
+abline(v=q20, col = 'orange', lwd=2, lty=2)
+abline(v=q20, col = 'red', lwd=2, lty=2)
+
+=====================================(위의 공식에 이어서 하는 것임.)====
+# 신뢰구간 추가하기
+# 신뢰구간은 진짜 답이 있을 것 같은 범위를 말한다. 데이터 전체를 분석하지않고,
+# 신뢰할 수 있는 데이터 범위를 분석함.
+
+
+# 데이터 행의 수 조회
+n = nrow(이상치제거_데이터)
+print(n)   # 전체 행의 수 5
+
+# 표준오차 : 내가 구한 평균값이 얼마나 믿을 만한지를 알려주는 숫자
+# 표준오차가 작다 : 내가 구한 평균이 진짜 평균에 가까울 확률이 높다.
+# 표준오차가 크다 : 내가 구한 평균이 진짜 평균과 많이 다를수 있다.
+# 표준오차
+# sqrt : 제곱근 
+# 예를들어 sqrt(4) --> 2, sqrt(9) --> 3이 나옴
+se = sigma / sqrt(n)
+# 1.96? 통계분석에서 일반적으로 사용되는 신뢰수준 값 --> 95% 신뢰
+ci_low = mu - 1.96*se
+ci_high = mu + 1.96*se
+
+# 신뢰구간 그래프 표현
+abline(v=ci_low, col = 'black', lwd = 2)
+abline(v=ci_high, col = 'black', lwd = 2)
+
+
+===========(센서 온도 예제 실습 자료 : 아래의 내용임 / 오전까지 자료임.)=========
+
+library(dplyr)
+
+# csv 파일 불러오기 
+
+센서_데이터 = read.csv('sensor_data.csv', fileEncoding = 'CP949',
+                  encoding = 'UTF-8', check.names = FALSE)
+
+#View(센서_데이터)
+str(센서_데이터) #데이터 타입확인 숫자인지 문자인지 확인!
+
+# 1. 이상치 제거
+# 평균, 표준편차 조회
+mu = mean(센서_데이터$온도)
+sigma = sd(센서_데이터$온도)
+# Z-score 이상치 제거 기법
+센서_데이터$z_score = abs((센서_데이터$온도 - mu) / sigma)
+print(센서_데이터)
+
+# 필터링 제거
+# 임계값 3
+# 임계값 2는 비교적 넓은 범위의 이상치를 탐지할 때 사용됩니다.
+센서_데이터 = 센서_데이터 %>% filter(z_score < 3)
+
+# 정규분포 시각화
+# x,y 축 그리기
+온도_최솟값 = min(센서_데이터$온도) 
+온도_최댓값 = max(센서_데이터$온도)
+x = seq(온도_최솟값 - 10, 온도_최댓값 + 10, length = 50)
+y = dnorm(x, mu, sigma) #x값, 평균, 표준편차 (순서 주의!)
+
+# PDF 저장하기
+pdf('sensor_data.pdf', family ='Korea1deb') #PDF 선언
+
+# 정규분포 그리기
+plot(x, y, type='l',main = '온도센서 정규분포도', xlab='온도', ylab='확률')
+
+# 중앙값, 하위 20%, 상위 20% 조회
+med = median(센서_데이터$온도) #중앙값 조회
+q20 = quantile(센서_데이터$온도, 0.2) #하위 20
+q80 = quantile(센서_데이터$온도, 0.8) #상위 20
+
+# 선표시
+abline(v=med, col='purple') #중앙값은 보라
+abline(v=q20, col='forestgreen') #초록 하위
+abline(v=q80, col='orange') # 주황 상위
+
+# 신뢰구간 표시
+n = nrow(센서_데이터) #데이터 행의 수 조회
+se = sigma / sqrt(n) #표준편차 조회
+# 신뢰구간(confidence interval) 계산
+ci_low = mu - 1.96 * se
+ci_high = mu + 1.96 * se
+# 신뢰구간 표기
+abline(v=ci_low, col = 'red')
+abline(v=ci_high, col = 'red')
+
+dev.off()# PDF 닫기  # 그림 확인 센서데이터
+
+
+

@@ -1,0 +1,230 @@
+# 벡터 복습
+# 1. 벡터는 비슷한 데이터를 한줄로 모아놓은 상자
+# 2. 벡터를 생성ㅅ  c() 문법 사용
+# 3. 벡터에서 값을 꺼낼때는 []를 사용
+
+colors = c('red', 'blue', 'green') # 벡터 생성
+
+print(colors[1])  # ctrl + shift + s
+
+print(colors[c(2,3)]) # 벡터에서 여러개 값을 꺼낼때 사용
+
+# ***** 벡터와 조건문 활용
+# ifelse : 만약 ~~ 라면  1,2,3 = 원소, %% = 나머지 값
+x = c(1,2,3,4,5)   
+result = ifelse(x %% 2 == 0, '짝수','홀수')
+print(result)
+
+# 데이터 프레임
+# 가로(행) 세로(열)가 있는 테이블
+
+# 벡터 생성
+id = c(1,2,3)
+name = c('김길동', '홍길동', '박길동')
+age = c(20, 30, 40)
+
+# 데이터프레임생성
+df = data.frame(id, name, age)  #벡터를 묶은게
+# View(df)
+                               ** 아래의 내용이 엑셀을 불러온 것임.(csv 형태로)**
+# EMPNO : 사원번호
+# ENAME : 사원명
+# JOB   : 직책
+# MGR   : 사수번호
+# HIREDATE : 입사날짜
+# SAL : 급여
+# COMM : 보너스(커미션)
+# DEPTNO : 부서번호
+
+
+emp = data.frame(
+  empNO = c(7369, 7499, 7521, 7566, 7698, 7782, 7788, 7839, 7844, 7900),
+  ENAME = c("SMITH", "ALLEN", "WARD", "JONES", "BLAKE", "CLARK", "SCOTT", "KING", "TURNER", "ADAMS"),
+  JOB = c("CLERK", "SALESMAN", "SALESMAN", "MANAGER", "MANAGER", "MANAGER", "ANALYST", "PRESIDENT", "SALESMAN", "CLERK"),
+  MGR = c(7902, 7698, 7698, 7839, 7839, 7839, 7566, NA, 7698, 7788),
+  HIREDATE = as.Date(c("1980-12-17", "1981-02-20", "1981-02-22", 
+                       "1981-04-02", "1981-05-01", "1981-06-09",
+                       "1982-12-09", "1981-11-17", "1981-09-08",
+                       "1983-01-12")),
+  SAL = c(800, 1600, 1250, 2975, 2850, 2450, 3000, 5000, 1500, 1100),
+  COMM = c(NA, 300, 500, NA, NA, NA, NA, NA, NA, NA),
+  DEPTNO = c(20, 30, 30, 20, 30, 10, 20, 10, 30, 20)
+)
+# View(emp)
+
+# 데이터프레임 조회  가장 중요함
+
+# *** 데티어프레임 타입 확인
+str(emp)   # structure(구조)
+# 행과 열 개수파악 : print(dim(emp))
+
+# 1행부터 6행까지 출력
+print(head(emp))
+
+# 1행부터 2행까지
+print(head(emp,2))
+
+# 아래에서부터 6행까지 출력
+print(tail(emp))
+
+# 아래에서부터 2행까지 출력
+print(tail(emp,2))
+
+#전체 컬럼조회
+print(colnames(emp))
+
+# 행과 열 개수 조회  # 10행 8열  # dimension(차원)
+print(dim(emp))  
+
+
+# 데이터프레임 특정 열 조회
+# 사원 이름만 조회
+cat('사원 이름 :', emp$ENAME,'\n')
+
+# 부서번호만 조회
+cat('부서 번호 :', emp$DEPTNO,'\n')
+
+# 새로운 열 생성 : $ 를 추가하면 엑셀의 오른쪽 끝 열에 보너스 열이 생성됨.
+emp$bonus = 100
+
+View(emp)  # 확인
+
+# 데이터 프레임  --> 엑셀로 전환
+# file = 'emp.csv'  # 파일 이름명
+# row.names = FALSE   # 행 번호가 파일에 저장되지 않습니다.
+write.csv(emp, file = 'emp.csv', row.names = FALSE)
+
+================
+# 집계함수
+# 엑셀 총합, 평균, 최대값, 최소값....
+# R도 엑셀처럼 통계내는 도구가 있음.
+
+# 벡터 생성  10 ~ 50 값이 x로 대입이 된다는 것임.
+x = c(10, 20, 30, 40, 50)
+# 최소값
+최소값 = min(x)
+# 최대값
+최소값 = max(x)
+총합 = sum(x)
+평균 = mean(x)
+# sd = standard deviation
+표준편차 = sd(x)
+
+# 데이터 프레임에서 특정 열(벡터조회)
+# cat를 이용해서 emp의 급여만 조회
+cat('급여 :', emp$SAL,'\n')
+
+# 사원급여 평균 구하기
+cat('사원 급여 평균 :', mean(emp$SAL), '\n')
+# 사원급여 총합 구하기
+cat('사원 급여 총합 :', sum(emp$SAL), '\n')
+# 사원급여 최대값 구하기
+cat('사원 급여 최대값 :', max(emp$SAL), '\n')
+# 사원급여 최소값 구하기
+cat('사원 급여 최소값 :', min(emp$SAL), '\n')
+
+
+# COMM : 커미션의 총합 구하기
+print(sum(emp$COMM, na.rm = TRUE)) # 결과 X
+# na.rm = TRUE  : 열값 중 NA가 있는면 통계가 안됨
+# rm : 제거 리무브
+
+# 제어문을 활용한 열 생성
+# 사원급여가 3000 이상이면 High 나머지는 Low
+emp$Grade = ifelse(emp$SAL >= 3000, 'High', 'Low')
+# View(emp)
+
+# 기존 열 수정
+emp$bonus = emp$bonus*2
+# View(emp)
+
+# 사원 근속일(오늘날짜 - 입사날짜) 컬럼 추가하기
+
+# 오늘날짜 조회
+print(Sys.Date())
+# difftime : 시간차이 계산
+# 단, 해당 열(벡터)가 데이터타입이 날짜형(as.Date)이어야 함.
+cat('사원근속일: ', difftime(Sys.Date(), emp$HIREDATE), '\n')
+
+# *****데이터 프레임 행 조건 필터링 # 엑셀 필터링 개념
+# 문법 : 데이터 프레임[행조건, 열조건]
+
+# 문제 : 사원급여가 2000이상인 사원 전체 조회
+결과 = emp[emp$SAL >= 2000, c('ENAME','SAL')]
+print(결과)
+
+# 문제 : 직책(JOB)이 SALESMAN 인 사원의 이름과 직책, 입사날짜 조회
+# == (비교연산자)
+결과2 = emp[emp$JOB == 'SALESMAN', c('ENAME', 'JOB', 'HIREDATE')]
+print(결과2)
+
+# 문제 : 급여가 1500 이상 3000이하인 직원 조회
+# & (and 연산자) 두조건 만족해야함.
+결과3 = emp[emp$SAL >= 1500 & emp$SAL <= 3000,]
+print(결과3)
+
+# 문제 : 커미션(COMM)을 받은 직원조회(NA제외)
+# is.na() : 너의 값이 na 니?
+x = c(1,2,NA,3)
+print(is.na(x)) #FALSE FALSE  TRUE FALSE
+# ! : 부정, 반대
+print(!is.na(x)) # TRUE  TRUE FALSE  TRUE(! 붙이면 반대로 나옴)
+
+# COMM이 NA가 아닌 사원조회
+print(emp[!is.na(emp$COMM), c('ENAME', 'COMM')])
+
+==========================================
+
+# setwd('') # 폴더(디렉토리) 변경  # ('사이에 경로를 입력하기')
+   그러면 아래에 모두 적용되는 것임.(분석이 아래의 명령어에 적용되는것임.)
+print(getwd())  # 디렉토리 경로확인
+
+print(list.files()) # 현재 디렉토리 파일 목록 출력
+
+# emp.csv 파일을 불러오기는 다음과 같음.
+emp = read.csv('emp.csv')  # 데이터 프레임 불러오기
+# View(emp) # 확인
+
+# 문제 1 : 행과 열의 개수 파악
+print(dim(emp))
+# 문제 2 : 전체 컬럼만 조회
+print(colnames(emp))
+# 문제 3 : 데이터 상위 1 ~ 4행 출력하기
+print(head(emp,4))
+# 문제 4 : 데이터 마지막 3행 출력하기
+print(tail(emp,3))
+# 문제 5 : *** 데이터 타입 확인 : 외우기 코드
+str(emp)   # 각 벡터들이 숫자인지 문자인지 날짜형인지 나타냄.
+
+#### dplyr(디플리알) : data frame piler 의 줄임말 '데이터프레임을 다루는 공구'
+# 실무에서 자주 사용되고, 특히 대규모 데이터셋에서 빠른속도록 제공함.
+# 이것은 설치를 해야하는데 아래와 같이 함.
+
+# install.packages('dplyr') # 설치명령어.
+library(dplyr)  # 설치된 디플리알 불러오기, 이후 주석처리 한다.
+#(앞의 것 인스톨 패키지 주석처리)
+
+# 문제 : 급여가 3000 이상인 사원조회
+# 방향(람다식표현이라고 한다.) : emp %>%  # 오른쪽으로 연결해서 계속 분석
+급여3000 = emp %>% filter(SAL >= 3000)
+print(급여3000)
+
+# 급여가 3000 이상인 사원 이름, 급여, 사원번호 조회
+급여3000이름 = emp %>% filter(SAL >= 3000) %>% select(ENAME, SAL, empNO)
+print(급여3000이름)
+
+# 사원 직책(JOB) 이 MANAGER 인 사원의 이름, 직책, 부서번호, 급여조회
+결과 = emp %>% filter(JOB == 'MANAGER') %>% select(ENAME, JOB, DEPTNO, SAL)
+View(결과)
+
+# 새로운 열 추가 & 수정
+# mutate : 변화하다
+결과 = emp %>% mutate(TOTAL_COMM = SAL + 100)
+View(결과)
+
+# 급여와 커미션의 합계를 TOTAL_COMM에 수정 ****
+결과 = emp %>% mutate(TOTAL_COMM = SAL + ifelse(is.na(COMM),0,COMM))
+View(결과)
+
+===================(이후부터 오후에 강의한 것임.)==========
+

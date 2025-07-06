@@ -1,0 +1,663 @@
+# 경로 확인
+ # 해당 경로에 있는 파일 조회
+
+# csv파일 불러오기
+emp = read.csv('emp.csv')
+# View(emp) #데이터 확인
+# 데이터 확인
+# 문제 1: 행과 열의 개수 파악
+print(dim(emp)) # dimension : 차원
+# 문제 2: 전체 컬럼만 조회
+print(colnames(emp)) # col : 컬럼 + names : 이름(들)
+# 문제 3: 데이터 상위 1~2행 출력하기
+print(head(emp,2))
+# 문제 4: 데이터 마지막 3개행을 출력하기
+print(tail(emp,3)) 
+# 문제 5: 데이터 타입 확인***
+str(emp) # structure : 구조
+
+## dplyr (디플리알) -> 데이터 가공(전처리)
+# 데이터 전처리가 실무에서 80~90% 하는일
+
+# install.packages("dplyr") # 1. 설치 필요
+library(dplyr) #설치한 프로그램 가져오기(임포트 import)
+
+# 급여(SAL)가 3000 이상인 직원들의 이름(ENAME)과 직업(JOB)을 출력하세요.
+결과 = emp %>% filter(SAL >= 3000) %>% select(ENAME, JOB)
+print(결과)
+
+# 직업(JOB)별 평균 급여(SAL)를 계산하고 출력하세요.
+# R은 group_by만 단독적으로 사용 시 의미없는 결과가 나온다.
+# 그룹별 평균, 총합, 최댓, 최솟, 중앙, 표준편차.. summarise(요약하다)
+# mean : 평균, n : 행의 수, sum : 총합
+결과 = emp %>% group_by(JOB) %>% 
+  summarise(AVG_SAL = mean(SAL), EMP_COUNT = n(), SUM_SAL = sum(SAL))
+print(결과)
+# 급여가 2000 이상인 직원들만 필터링한 후, 부서 번호(DEPTNO)별 직원 수를 계산하세요.
+결과 = emp %>%
+  filter(SAL >= 2000) %>%
+  group_by(DEPTNO) %>%
+  summarize(EMP_COUNT = n())
+print(결과)
+
+# dept 데이터 불러오기, str로 구조확인
+dept = read.csv('dept.csv')
+str(dept)
+# View(dept)
+
+# 디플리알 병합(JOIN)
+# 두 데이터 프레임을 특정 컬럼을 기준으로 병합합니다.
+조인결과 = emp %>% inner_join(dept, by = "DEPTNO" )
+#View(조인결과) # dept에 있는 컬럼까지 확인가능
+# 근무지가 "DALLAS"인 직원들의 이름 출력하기
+조인결과= emp %>% inner_join(dept, by = "DEPTNO") %>% filter(LOC == 'DALLAS') %>%
+  select(ENAME, JOB)
+print(조인결과)
+
+# slice : 자르다(DBMS = limit)
+결과 = emp %>% slice(2, 4)
+print(결과) # 2번째 행과 4번째 행 추출
+
+# 첫 번째 ~ 세 번째 직원 행 추출
+결과 = emp %>% slice(1:3)
+print(결과)
+# slice 맨 마지막에 작성(대부분 경우)
+# 문제 풀기 2,4,8,10번 풀기
+
+# 문제 2: "RESEARCH" 부서에 근무하는 직원들의 이름(ENAME)과 급여(SAL)를 출력하세요.
+조인결과 = emp %>% inner_join(dept, by = "DEPTNO") %>% filter(LOC == 'RESEARCH') %>%
+  select(ENAME, SAL)
+print(조인결과)
+# 문제 4: 각 부서(DNAME)별 직원 수를 계산하고 출력하세요.
+조인결과 = emp %>% inner_join(dept, by = "DEPTNO") %>% group_by(DNAME) %>%
+  summarise(EMP_COUNT = n()) %>% slice(1)
+print(조인결과)
+# 문제 8: "SALES" 부서에서 근무하는 직원들의 이름(ENAME), 급여(SAL), 커미션(COMM)을 출력하세요.(skip)
+# 문제 10: 직업(JOB)이 "MANAGER"인 직원들의 이름(ENAME), 부서명(DNAME), 급여(SAL)을 출력하세요.
+조인결과 = emp %>% inner_join(dept, by = "DEPTNO") %>% filter(JOB == 'MANAGER') %>%
+  select(ENAME, DNAME, SAL)
+
+# 문제 4
+# arrange : 정렬, desc: 내림차순
+조인결과 = emp %>% inner_join(dept, by = "DEPTNO") %>% group_by(DNAME) %>%
+  summarise(EMP_COUNT = n()) %>% arrange(desc(EMP_COUNT)) %>% slice(1:2)
+print(조인결과)
+======================
+# 시각화
+# emp.csv파일 불러오기
+# dplyr도 임포트
+
+library(dplyr)
+emp = read.csv('emp.csv')
+# 1. 박스플롯
+# 박스플롯은 여러 그룹의 데이터 분포를 비교하여 중앙값과 퍼짐정도 차이 분석
+# 예) 남 녀 영어점수 비교, a팀 b팀 영업성과 비교
+# 부서별 급여 박스플로으로 시각화
+# xlab ylab 축을 의미하고, main은 그래프 이름을 의미함.
+# col 컬럼
+# 해당그래프를 pdf로 변환
+
+pdf('부서별 급여_박스플롯.pdf', family = 'Korea1deb')
+boxplot(emp$SAL ~ emp$DEPTNO, main = '부서별 급여 현황', 
+        xlab = '부서', ylab = '급여', col = c('orange','green','blue'))
+
+dev.off() # pdf 다운로드 종료
+
+
+
+# 막대그래프
+# 막대그래프는 범주형데이터로 빈도나 크기를 비교할 때 사용
+# 예를들면, 제품별 판매량 비교, 직업에 따른 평균 소득
+
+# 부서별 평균 급여를 막대그래프로 표현
+# 전처리로 평균 급여 조회
+
+dept_avg_sal = emp %>% group_by(DEPTNO) %>% summarise(AVG_SAL = mean(SAL))
+
+# names.arg 는 x축 데이터 표시
+# main 은 그래프 이름
+# ylab 은 y축
+barplot(dept_avg_sal$AVG_SAL, names.arg = dept_avg_sal$DEPTNO,
+        main = '부서별 평균 급여', ylab = '급여')
+
+# 히스토 그램
+# 데이터를 일정한 구간으로 나누고, 각 구간에 속하는 데이터의 빈도를 
+# 막대의 높이로 표현
+
+# 문제 mutate 사용해서, 직원 COMM이 NA 인 직원만 100 지급
+# mutate는 수정 추가 시 사용한다.
+emp = emp %>% mutate(COMM = ifelse(is.na(COMM), 100, COMM))  # 수정한것임.
+
+# 문제 mutate 사용해서, 직원 급여와 직원 커미션을 더한 새로운 컬럼
+# SUM_SAL_COMM 만들기
+emp = emp %>% mutate(SUM_SAL_COMM = SAL + COMM) # 추가
+print(emp)
+
+hist(emp$SUM_SAL_COMM, main = '직원 급여 + 커미션 분포', 
+     xlab = '급여+커미션', ylab = '빈도')
+
+# 그래프에다가 평균선 추가
+# abline : add a line 직선을 추가하다.
+pdf('salary_hist.pdf', family = 'Korea1deb')
+abline(v = mean(emp$SUM_SAL_COMM), col = 'red', lwd = 10)
+dev.off()                 # pdf 다운로드 종료
+========================================================
+
+
+### 시각화(강사님 파일 오려준것임.)
+# emp.csv파일을 불러와주세요
+# 디플리알도 임포트 해주세요.
+library(dplyr)
+emp = read.csv('emp.csv')
+
+# 1. 박스플롯
+# 박스플롯은 여러 그룹의 데이터 분포를 비교하여 중앙값과 퍼짐 정도의 차이를 분석
+# 예) 남 vs 녀 영어점수 비교, A팀 vs B팀 영업성과 비교
+
+# 부서별 급여 박스플롯으로 시각화
+# main : 그래프 이름
+# xlab : x 축 이름
+# ylab : y 축 이름
+# col: 컬럼
+# 해당 그래프를 PDF 변환
+
+pdf('부서별급여_박스플롯.pdf', family = 'Korea1deb')
+boxplot(emp$SAL ~ emp$DEPTNO, main = '부서별 급여 현황', xlab = '부서', ylab = '급여', col = c('orange','green','blue'))
+
+dev.off() # pdf 다운로드 종료
+
+
+# 막대그래프
+# 범주형 데이터 빈도나 크기를 비교할 때 사용
+# 예) 제품별 판매량 비교, 직업에 따른 평균 소득
+
+# 부서별 평균 급여를 막대그래프로 표현
+# 전처리로 평균 급여 조회
+
+dept_avg_sal = emp %>% group_by(DEPTNO) %>% summarise(AVG_SAL = mean(SAL))
+
+# names.arg  : x 축 데이터 표시
+# main : 그래프 이름
+# ylab : y 축 
+barplot(dept_avg_sal$AVG_SAL, names.arg = dept_avg_sal$DEPTNO,
+        main = '부서 별 평균 급여', ylab = '급여')
+
+# 히스토그램
+# 데이터를 일정한 구간으로 나누고, 각 구간에 속하는 데이터의 빈도를 
+# 막대의 높이로 표현
+
+# 문제. mutate 사용해서, 직원 COMM이 NA인 직원만 100 지급
+# mutate(수정, 추가)
+# ifelse ***
+emp = emp %>% mutate(COMM = ifelse(is.na(COMM), 100, COMM)) # 수정
+# 문제. mutate 사용해서, 직원 급여와 직원 커미션을 더한 새로운 컬럼,
+# SUM_SAL_COMM 만들기
+emp = emp %>% mutate(SUM_SAL_COMM = SAL + COMM) # 추가
+print(emp)
+
+hist(emp$SUM_SAL_COMM, main = '직원 급여+커미션 분포', xlab = '급여+커미션', ylab = '빈도')
+
+# 평균선 추가
+# abline: add a line: 직선을 추가하다
+# lwd : line width : 선 두께 
+# PDF 장치 열기
+pdf("salary_hist.pdf", family = "Korea1deb")
+
+abline(v = mean(emp$SUM_SAL_COMM), col = 'red', lwd = 2)
+
+# PDF 장치 닫기
+dev.off()
+=============================
+
+# 막대그래프
+# 막대그래프는 범주형데이터로 빈도나 크기를 비교할 때 사용
+# 예를들면, 제품별 판매량 비교, 직업에 따른 평균 소득
+
+# 부서별 평균 급여를 막대그래프로 표현
+# 전처리로 평균 급여 조회
+
+dept_avg_sal = emp %>% group_by(DEPTNO) %>% summarise(AVG_SAL = mean(SAL))
+
+# names.arg 는 x축 데이터 표시
+# main 은 그래프 이름
+# ylab 은 y축
+barplot(dept_avg_sal$AVG_SAL, names.arg = dept_avg_sal$DEPTNO,
+        main = '부서별 평균 급여', ylab = '급여')
+
+# 히스토 그램
+# 데이터를 일정한 구간으로 나누고, 각 구간에 속하는 데이터의 빈도를 
+# 막대의 높이로 표현
+
+# 문제 mutate 사용해서, 직원 COMM이 NA 인 직원만 100 지급
+# mutate는 수정 추가 시 사용한다.
+emp = emp %>% mutate(COMM = ifelse(is.na(COMM), 100, COMM))  # 수정한것임.
+
+# 문제 mutate 사용해서, 직원 급여와 직원 커미션을 더한 새로운 컬럼
+# SUM_SAL_COMM 만들기
+emp = emp %>% mutate(SUM_SAL_COMM = SAL + COMM) # 추가
+print(emp)
+
+hist(emp$SUM_SAL_COMM, main = '직원 급여 + 커미션 분포', 
+     xlab = '급여+커미션', ylab = '빈도')
+
+# 그래프에다가 평균선 추가(위의 그래프에다가 평균선 적색 추가한 모습)
+# abline : add a line 직선을 추가하다.
+pdf('salary_hist.pdf', family = 'Korea1deb')
+
+abline(v = mean(emp$SUM_SAL_COMM), col = 'red', lwd = 2)
+
+dev.off()       # pdf 다운로드 종료(pdf 창닫기)
+
+# 산점도 
+# 변수간의 관계를 시각화할때 사용한다. 키와 몸무게 관계
+# 온도와 에너지 소비량 관계, 흡연과 건강검진 결과 관계
+
+x = c(1,4,2,6,10,15)
+y = c(2,3,6,6,10,2)
+
+plot(x, y, main = '산점도 예시', xlab = 'x값', ylab = 'y값', col = 'blue',
+     pch = 20)
+
+
+================================================
+
+# 산점도  : 건강검진 자료임.
+# 변수간의 관계를 시각화할때 사용한다. 키와 몸무게 관계
+# 온도와 에너지 소비량 관계, 흡연과 건강검진 결과 관계
+
+x = c(1,4,2,6,10,15)
+y = c(2,3,6,6,10,2)
+# pch 는 점크기이다.
+
+plot(x, y, main = '산점도 예시', xlab = 'x값', ylab = 'y값', col = 'blue',
+     pch = 20)
+
+# (산점도 분석 후 회귀선 추가)
+# 회귀선 추가
+# linear model : 선형 모델 선형 회귀
+model = lm(y ~ x)
+
+# abline : add a line
+abline(model, col = 'red', lwd = 2)
+
+### 데이터 스케일링
+# 데이터 스케일링은 전처리 방법 중 하나이고, 
+# 분석과 머신러닝에서 중요한 과정입니다.
+
+# 데이터 프레임 생성
+data = data.frame(
+  height_cm = c(150, 160, 170, 180, 190),  # 키
+  weight_kg = c(50, 60, 70, 80, 90)        # 몸무게
+)
+
+# 수치를 통일한다.
+# min-max라는 기법을 통해서 분석할 데이터를 0과 1사이로 변환한다.
+# 즉, 모든 데이터는 0과 1사이에 존재함.
+
+# 암기가 필요한 내용이다.
+# 스케일링 = 기존값 - 최소값 / 최대값- 최소값  # 공식이다.
+
+height_min = min(data$height_cm)  # 키 최소값
+height_max = max(data$height_cm)  # 키 최대값
+
+# 스케일링 결과 컬럼 추가
+
+data$height_scaled = (data$height_cm - height_min) / (height_max - height_min)
+# View(data)
+
+# 몸무게 스케일링해서 결과확인
+weight_min = min(data$weight_kg)  # 몸무게 최소값
+weight_max = max(data$weight_kg)  # 몸무게 최대값
+data$weight_scaled = (data$weight_kg - weight_min) / (weight_max - weight_min)
+# View(data)   # 이것은 View(data) 확인하고 반드시 주석처리 해라.
+
+======================= 6월 1일 오후에 강의 실습 (건강검진정보)===============
+# 컬럼이 한국어일 때 아래와 같이 설정합니다.
+health = read.csv('국민건강보험공단_건강검진정보.csv', 
+                  fileEncoding = 'CP949', 
+                  encoding = 'UTF-8', 
+                  check.names = FALSE)
+
+# 혈색소 데이터를 min-max 스케일링 하시오
+# 최솟값, 최댓값
+혈색소_최솟값 = min(health$혈색소)
+혈색소_최댓값 = max(health$혈색소) 
+
+health$혈색소_스케일링 = (health$혈색소 - 혈색소_최솟값) / (혈색소_최댓값 - 혈색소_최솟값)
+
+#View(health)
+library(dplyr)  # 로드
+# nrow() : 행 수
+# 0.8을 기준으로 잡는다. 0.81 ~ 1 사이 데이터를 이상치값 이라고 한다. 
+결과 = health %>% filter(혈색소_스케일링 > 0.8) %>% nrow()
+print(결과)
+# 문제1. 데이터 구조확인
+str(health)
+# 문제2. 상위 5행까지 출력
+head(health, 5)
+
+# 괄호가 있는 컬럼은 ``
+결과 = health %>% select(`혈청지오티(AST)`)
+
+# 데이터 구조는 문제풀기 전 *****
+str(health)
+# 성별, 연령대, 그리고 지역 열만 조회
+결과 = health %>% select(성별, `연령대코드(5세단위)`, 시도코드)
+# 2022년에 건강검진을 받은 사람 중 음주여부가 1인 사람의 가입자일련번호, 성별 조회
+결과 = health %>% filter(기준년도 == 2022 & 음주여부 == 1) %>% select(가입자일련번호, 성별)
+# (height)와 몸무게(weight) 열을 사용하여 새로운 열 BMI를 추가하세요.
+# 추가,수정 -> mutate
+# ** -> 지수, ex) 2**3 => 8
+health = health %>% mutate(BMI = `신장(5cm단위)` / (`체중(5kg단위)` / 100)**2 )
+# View(health)
+# 음주여부와 흡연상태가 1인 사람의 수축기혈압 , 성별 조회. 단, 혈압 내림차순으로 정렬하세요.
+결과 = health %>% filter(음주여부 == 1 & 흡연상태 == 1) %>% select(수축기혈압, 성별) %>%
+  arrange(desc(수축기혈압))
+
+# 성별(성별)로 데이터를 그룹화하고, 각 그룹별 평균 BMI를 계산하세요. 결과는 성별과 평균_BMI 열로 구성되어야 합니다.
+# na.rm = TRUE : 결측값 제외
+결과 = health %>% group_by(성별) %>% summarise(평균_BMI = mean(BMI, na.rm = TRUE))
+
+# 식전혈당 126 이상인 사람 중 수축기혈압 상위 5명 출력
+결과 = health %>% filter(`식전혈당(공복혈당)` >= 126) %>% arrange(desc(수축기혈압)) %>%
+  slice(1:5)
+# 허리둘레 중앙값 조회
+결과 = health %>% summarise(허리둘레_중앙값 = median(허리둘레, na.rm = TRUE))
+
+
+==================
+# 컬럼이 한국어일 때 아래와 같이 설정합니다.  *** 매우중요함. 잊으면 모든것이 문제가
+health = read.csv('국민건강보험공단_건강검진정보.csv', 
+                  fileEncoding = 'CP949', 
+                  encoding = 'UTF-8', 
+                  check.names = FALSE)
+
+# 혈색소 데이터를 min-max 스케일링 하시오
+# 최솟값, 최댓값
+혈색소_최솟값 = min(health$혈색소)
+혈색소_최댓값 = max(health$혈색소) 
+
+health$혈색소_스케일링 = (health$혈색소 - 혈색소_최솟값) / (혈색소_최댓값 - 혈색소_최솟값)
+
+#View(health)
+library(dplyr)  # 로드
+# nrow() : 행 수
+# 0.8을 기준으로 잡는다. 0.81 ~ 1 사이 데이터를 이상치값 이라고 한다. 
+결과 = health %>% filter(혈색소_스케일링 > 0.8) %>% nrow()
+print(결과)
+# 문제1. 데이터 구조확인
+str(health)
+# 문제2. 상위 5행까지 출력
+head(health, 5)
+
+# 괄호가 있는 컬럼은 ``
+결과 = health %>% select(`혈청지오티(AST)`)
+
+# 데이터 구조는 문제풀기 전 *****
+str(health)
+# 성별, 연령대, 그리고 지역 열만 조회
+결과 = health %>% select(성별, `연령대코드(5세단위)`, 시도코드)
+# 2022년에 건강검진을 받은 사람 중 음주여부가 1인 사람의 가입자일련번호, 성별 조회
+결과 = health %>% filter(기준년도 == 2022 & 음주여부 == 1) %>% select(가입자일련번호, 성별)
+# (height)와 몸무게(weight) 열을 사용하여 새로운 열 BMI를 추가하세요.
+# 추가,수정 -> mutate
+# ** -> 지수, ex) 2**3 => 8
+health = health %>% mutate(BMI = `신장(5cm단위)` / (`체중(5kg단위)` / 100)**2 )
+# View(health)
+# 음주여부와 흡연상태가 1인 사람의 수축기혈압 , 성별 조회. 단, 혈압 내림차순으로 정렬하세요.
+결과 = health %>% filter(음주여부 == 1 & 흡연상태 == 1) %>% select(수축기혈압, 성별) %>%
+  arrange(desc(수축기혈압))
+
+# 성별(성별)로 데이터를 그룹화하고, 각 그룹별 평균 BMI를 계산하세요. 결과는 성별과 평균_BMI 열로 구성되어야 합니다.
+# na.rm = TRUE : 결측값 제외
+결과 = health %>% group_by(성별) %>% summarise(평균_BMI = mean(BMI, na.rm = TRUE))
+
+# 식전혈당 126 이상인 사람 중 수축기혈압 상위 5명 출력
+결과 = health %>% filter(`식전혈당(공복혈당)` >= 126) %>% arrange(desc(수축기혈압)) %>%
+  slice(1:5)
+# 허리둘레 중앙값 조회
+결과 = health %>% summarise(허리둘레_중앙값 = median(허리둘레, na.rm = TRUE))
+
+# 성별로 음주여부가 1인 평균 체중 막대그래프로 표현
+# 데이터 전처리
+avg_weight_by_gender = health %>% filter(음주여부 == 1) %>%
+  group_by(성별) %>% summarise(평균체중 = mean(`체중(5kg단위)`, na.rm = TRUE))
+# 데이터 시각화
+# 1: 남성, 2: 여성
+barplot(avg_weight_by_gender$평균체중, #그래프 데이터
+        names.arg = avg_weight_by_gender$성별, # x축 이름
+        col = c('blue', 'red'), #그래프 색상 표현
+        main = '음주를 하는 성별 평균체중', # 그래프 이름
+        ylab = '평균 체중(kg)' # y축 이름
+        )
+
+===============================================
+# 연령별 식전혈당과 표준편차와 평균 구하기 -> 막대그래프로 표현
+
+# 연령대별 평균 식전혈당, 표준편차
+avg_result_by_age = health %>% group_by(`연령대코드(5세단위)`) %>%
+  summarise(
+    식전혈당_표준편차 = sd(`식전혈당(공복혈당)`, na.rm = TRUE),
+    식전혈당_평균 = mean(`식전혈당(공복혈당)`, na.rm = TRUE)
+  )
+print(avg_result_by_age)
+
+# 사분위수 계산
+q = quantile(avg_result_by_age$식전혈당_표준편차)
+print(q)
+
+# 행렬로 묶기
+mat = rbind(avg_result_by_age$식전혈당_표준편차, avg_result_by_age$식전혈당_평균)
+print(mat) 
+
+# 막대그래프 시각화
+barplot(mat, names.arg = avg_result_by_age$`연령대코드(5세단위)`,
+        beside = TRUE, # 두 막대 표현
+        main = '연령대 별 식전혈당 평균과 표준편차',
+        ylab = '식전혈당',
+        xlab = '연령대코드(5세단위)',
+        col = c('blue', 'red'),
+        legend.text = c('표준편차', '평균') #범례
+        )
+
+# 산점도
+# 남성의 혈청지오티(간기능)을 min-max로 변환 후,
+# 변환 된 값이 0.8보다 큰 남성의 가입자일련번호, 신장, 체중,
+# 혈정지오티 조회하기 단, 혈청지오티 기준으로 내림차순
+
+# 데이터 스케일링
+ast_result_by_male = health %>% filter(성별 == 1) %>%
+  mutate(AST_SCALED = (`혈청지오티(AST)` - min(`혈청지오티(AST)`)) / 
+                                            (max(`혈청지오티(AST)`) - min(`혈청지오티(AST)`)))
+# View(ast_result_by_male)
+
+# 0.8보다 큰 남성 조회
+high_ast_male = ast_result_by_male %>% filter(AST_SCALED >= 0.8) %>%
+  select(가입자일련번호, `신장(5cm단위)`, `체중(5kg단위)`, `혈청지오티(AST)`) %>%
+  arrange(desc(`혈청지오티(AST)`))
+print(high_ast_male) # 2명 조회
+
+# 간수치와 나이 관계 (산점도 표현)
+age = ast_result_by_male$`연령대코드(5세단위)`
+ast = ast_result_by_male$AST_SCALED
+plot(age, ast, main = '연령대와 혈청지오티 관계',
+     xlab = '연령대코드',
+     ybal = '혈청지오티',
+     col = 'blue',
+     pch = 20
+     )
+# lm: 회귀선
+model = lm(ast ~ age)
+# abline : add a line : 선 추가하다
+abline(model, col ='red', lwd =2)
+
+===================================(내가 정리한 것==위로
+------------- 강사님 정리------------아래
+
+# 컬럼이 한국어일 때 아래와 같이 설정합니다.
+health = read.csv('국민건강보험공단_건강검진정보.csv', 
+                  fileEncoding = 'CP949', 
+                  encoding = 'UTF-8', 
+                  check.names = FALSE)
+
+# 혈색소 데이터를 min-max 스케일링 하시오
+# 최솟값, 최댓값
+혈색소_최솟값 = min(health$혈색소)
+혈색소_최댓값 = max(health$혈색소) 
+
+health$혈색소_스케일링 = (health$혈색소 - 혈색소_최솟값) / (혈색소_최댓값 - 혈색소_최솟값)
+
+#View(health)
+library(dplyr)  # 로드
+# nrow() : 행 수
+# 0.8을 기준으로 잡는다. 0.81 ~ 1 사이 데이터를 이상치값 이라고 한다. 
+결과 = health %>% filter(혈색소_스케일링 > 0.8) %>% nrow()
+print(결과)
+# 문제1. 데이터 구조확인
+str(health)
+# 문제2. 상위 5행까지 출력
+head(health, 5)
+
+# 괄호가 있는 컬럼은 ``
+결과 = health %>% select(`혈청지오티(AST)`)
+
+# 데이터 구조는 문제풀기 전 *****
+str(health)
+# 성별, 연령대, 그리고 지역 열만 조회
+결과 = health %>% select(성별, `연령대코드(5세단위)`, 시도코드)
+
+# 2022년에 건강검진을 받은 사람 중 음주여부가 1인 사람의 가입자일련번호, 성별 조회
+결과 = health %>% filter(기준년도 == 2022 & 음주여부 == 1) %>% select(가입자일련번호, 성별)
+# (height)와 몸무게(weight) 열을 사용하여 새로운 열 BMI를 추가하세요.
+# 추가,수정 -> mutate
+# ** -> 지수, ex) 2**3 => 8
+health = health %>% mutate(BMI = `신장(5cm단위)` / (`체중(5kg단위)` / 100)**2 )
+# View(health)
+
+# 음주여부와 흡연상태가 1인 사람의 수축기혈압 , 성별 조회. 단, 혈압 내림차순으로 정렬하세요.
+결과 = health %>% filter(음주여부 == 1 & 흡연상태 == 1) %>% select(수축기혈압, 성별) %>%
+  arrange(desc(수축기혈압))
+
+# 성별(성별)로 데이터를 그룹화하고, 각 그룹별 평균 BMI를 계산하세요. 결과는 성별과 평균_BMI 열로 구성되어야 합니다.
+# na.rm = TRUE : 결측값 제외
+결과 = health %>% group_by(성별) %>% summarise(평균_BMI = mean(BMI, na.rm = TRUE))
+
+# 식전혈당 126 이상인 사람 중 수축기혈압 상위 5명 출력
+결과 = health %>% filter(`식전혈당(공복혈당)` >= 126) %>% arrange(desc(수축기혈압)) %>%
+  slice(1:5)
+# 허리둘레 중앙값 조회
+결과 = health %>% summarise(허리둘레_중앙값 = median(허리둘레, na.rm = TRUE))
+
+# 성별로 음주여부가 1인 평균 체중 막대그래프로 표현
+# 데이터 전처리
+avg_weight_by_gender = health %>% filter(음주여부 == 1) %>%
+  group_by(성별) %>% summarise(평균체중 = mean(`체중(5kg단위)`, na.rm = TRUE))
+
+# 데이터 시각화
+# 1: 남성, 2: 여성
+barplot(avg_weight_by_gender$평균체중, #그래프 데이터
+        names.arg = avg_weight_by_gender$성별, # x축 이름
+        col = c('blue', 'red'), #그래프 색상 표현
+        main = '음주를 하는 성별 평균체중', # 그래프 이름
+        ylab = '평균 체중(kg)' # y축 이름
+        )
+# 연령별 식전혈당과 표준편차와 평균 구하기 -> 막대그래프로 표현
+
+# 연령대별 평균 식전혈당, 표준편차
+avg_result_by_age = health %>% group_by(`연령대코드(5세단위)`) %>%
+  summarise(
+    식전혈당_표준편차 = sd(`식전혈당(공복혈당)`, na.rm = TRUE),
+    식전혈당_평균 = mean(`식전혈당(공복혈당)`, na.rm = TRUE)
+  )
+print(avg_result_by_age)
+
+# 사분위수 계산
+q = quantile(avg_result_by_age$식전혈당_표준편차)
+print(q)
+
+# 행렬로 묶기
+mat = rbind(avg_result_by_age$식전혈당_표준편차, avg_result_by_age$식전혈당_평균)
+print(mat) 
+
+# 막대그래프 시각화
+barplot(mat, names.arg = avg_result_by_age$`연령대코드(5세단위)`,
+        beside = TRUE, # 두 막대 표현
+        main = '연령대 별 식전혈당 평균과 표준편차',
+        ylab = '식전혈당',
+        xlab = '연령대코드(5세단위)',
+        col = c('blue', 'red'),
+        legend.text = c('표준편차', '평균') #범례
+        )
+
+# 산점도
+# 남성의 혈청지오티(간기능)을 min-max로 변환 후,
+# 변환 된 값이 0.8보다 큰 남성의 가입자일련번호, 신장, 체중,
+# 혈정지오티 조회하기 단, 혈청지오티 기준으로 내림차순
+
+# 데이터 스케일링
+ast_result_by_male = health %>% filter(성별 == 1) %>%
+  mutate(AST_SCALED = (`혈청지오티(AST)` - min(`혈청지오티(AST)`)) / 
+                                            (max(`혈청지오티(AST)`) - min(`혈청지오티(AST)`)))
+# View(ast_result_by_male)
+
+# 0.8보다 큰 남성 조회
+high_ast_male = ast_result_by_male %>% filter(AST_SCALED >= 0.8) %>%
+  select(가입자일련번호, `신장(5cm단위)`, `체중(5kg단위)`, `혈청지오티(AST)`) %>%
+  arrange(desc(`혈청지오티(AST)`))
+print(high_ast_male) # 2명 조회
+
+# 간수치와 나이 관계 (산점도 표현)
+age = ast_result_by_male$`연령대코드(5세단위)`
+ast = ast_result_by_male$AST_SCALED
+plot(age, ast, main = '연령대와 혈청지오티 관계',
+     xlab = '연령대코드',
+     ybal = '혈청지오티',
+     col = 'blue',
+     pch = 20
+     )
+# lm: 회귀선
+model = lm(ast ~ age)
+# abline : add a line : 선 추가하다
+abline(model, col ='red', lwd =2)
+
+===================================================
+(2025-6-1 오후 서울특별시 공공자전거 이용정보 자료 이용하여 준비 실습)
+# 한국어 파일의 경우, CP949 또는 EUC-KR 인코딩을 사용하는 것이 일반적
+data = read.csv('서울특별시_공공자전거_이용정보.csv',
+                na.strings = c(""), # ""를 NA로 표현한다.
+                fileEncoding = 'CP949', 
+                encoding = 'UTF-8', 
+                check.names = FALSE)
+# View(data)
+
+# 데이터전처리만 진행해주세요.
+
+#문제 1: 이동거리(M)가 2000 이상인 데이터 중 해당 대여소명과 이동거리(M), 이용시간(분)만 조회.
+
+
+#문제 2: 대여소 별 이용건 수 조회.
+
+
+#문제 3: 일일회원과 정기회원 이용 건 수, 평균 이용시간 조회. 단, 일일회원권 중 비회원은 제외
+
+
+#문제 4: 탄소량이 0.8 이상인 이용 건수는 몇 건인지 조회.
+
+
+#문제 5: 연령대별로 평균 이동거리(M) 조회.
+
+
+#문제 6: 연령대별로 이용건수의 합과 평균 운동량을 구한 뒤, 운동량 평균이 가장 높은 연령대 조회.
+
+
+#문제 7: 대여소명에 "역"이 포함된 대여소에서 발생한 총 운동량의 합 조회.
+
+
+#문제 8: 10대 여성 회원의 평균 운동량, 평균 이동거리 조회. 단, 평균 운동량으로 내림차순 할 것
+
+
+#문제 9: 운동량을 데이터 스케일링 min-max로 변환한 scaled_운동량 컬럼을 
+#추가 0.8 이하인 회원 이동거리 사분위수 출력
+
+
+
